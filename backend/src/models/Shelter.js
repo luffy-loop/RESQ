@@ -32,7 +32,8 @@ const shelterSchema = new mongoose.Schema(
     active: {
       type: Boolean,
       default: true
-    }
+    },
+    demoSeed: { type: Boolean, default: false }
   },
   { timestamps: true }
 );

@@ -13,7 +13,7 @@ import {
   UserRound,
   XCircle
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import useResqSocket from "./hooks/useResqSocket";
 import "./VolunteerDashboard.css";
 
@@ -46,7 +46,7 @@ function VolunteerDashboard() {
   const [claiming, setClaiming] = useState(null);
   const [notice, setNotice] = useState(null);
   const [online, setOnline] = useState(false);
-  const [sharing, setSharing] = useState(false);
+  const [sharing, setSharing] = useState(false);\n  const navigate = useNavigate();
 
   const watchRef = useRef(null);
   const socketRef = useRef(null);
@@ -284,7 +284,7 @@ function VolunteerDashboard() {
   const logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
-    window.location.href = "/login?role=VOLUNTEER";
+    navigate("/login?role=VOLUNTEER", { replace: true });
   };
 
   if (loading) {

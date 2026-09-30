@@ -49,6 +49,7 @@ const getVolunteers = async (req, res) => {
 
 const updateVolunteerLocation = async (req, res) => {
   try {
+    if (req.user?.role === "VOLUNTEER" && String(req.user._id) !== String(req.params.id)) return res.status(403).json({ message: "Volunteers can only update their own location" });
     const { longitude, latitude } = req.body;
 
     if (
@@ -94,6 +95,7 @@ const updateVolunteerLocation = async (req, res) => {
 
 const updateVolunteerAvailability = async (req, res) => {
   try {
+    if (req.user?.role === "VOLUNTEER" && String(req.user._id) !== String(req.params.id)) return res.status(403).json({ message: "Volunteers can only update their own availability" });
     const volunteer = await User.findOneAndUpdate(
       {
         _id: req.params.id,

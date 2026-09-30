@@ -37,6 +37,10 @@ const register = async (req, res) => {
       organizationName
     } = req.body;
 
+    const allowedRoles = ["CITIZEN", "VOLUNTEER", "NGO"];
+    const safeRole = role || "CITIZEN";
+    if (!allowedRoles.includes(safeRole)) return res.status(403).json({ success: false, message: "Authority accounts are provisioned by the response administrator" });
+
     const existing = await User.findOne({ email });
 
     if (existing) {
@@ -59,11 +63,11 @@ const register = async (req, res) => {
       name,
       email,
       password: hashedPassword,
-      role: role || "CITIZEN",
+      role: safeRole,
       phone,
-      organizationName: role === "NGO" ? organizationName.trim() : undefined,
+      organizationName: safeRole === "NGO" ? organizationName.trim() : undefined,
       skills: skills || [],
-      available: role === "VOLUNTEER",
+      available: safeRole === "VOLUNTEER",
       location: {
         type: "Point",
         coordinates: coordinates || [78.4867, 17.385]

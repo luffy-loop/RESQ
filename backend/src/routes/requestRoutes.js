@@ -1,11 +1,12 @@
 const express = require("express");
 const { createRequest, getRequestById, getPublicRequests, getRequests, updateRequest, autoAssignVolunteer, assignToVolunteer } = require("../controllers/requestController");
+const { requireAuth, allowRoles } = require("../middleware/auth");
 const router = express.Router();
 router.post("/", createRequest);
 router.get("/public", getPublicRequests);
-router.get("/", getRequests);
-router.get("/:id", getRequestById);
-router.patch("/:id", updateRequest);
-router.post("/:id/auto-assign", autoAssignVolunteer);
-router.post("/:id/assign", assignToVolunteer);
+router.get("/", requireAuth, allowRoles("AUTHORITY", "VOLUNTEER", "NGO"), getRequests);
+router.get("/:id", requireAuth, allowRoles("AUTHORITY", "VOLUNTEER", "NGO"), getRequestById);
+router.patch("/:id", requireAuth, allowRoles("AUTHORITY", "VOLUNTEER", "NGO"), updateRequest);
+router.post("/:id/auto-assign", requireAuth, allowRoles("AUTHORITY"), autoAssignVolunteer);
+router.post("/:id/assign", requireAuth, allowRoles("AUTHORITY", "VOLUNTEER"), assignToVolunteer);
 module.exports = router;

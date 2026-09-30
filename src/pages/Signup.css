@@ -1,0 +1,153 @@
+.signup-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #080604;
+  padding: 24px;
+}
+
+.signup-card {
+  width: 100%;
+  max-width: 440px;
+  padding: 42px;
+  background: #120d08;
+  border: 1px solid #3a2417;
+  border-radius: 16px;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.55);
+}
+
+.signup-brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 38px;
+}
+
+.signup-brand .brand-mark {
+  width: 46px;
+  height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #24150d;
+  border: 1px solid #5a2e17;
+  border-radius: 10px;
+  color: #fc6c26;
+}
+
+.signup-brand h1 {
+  margin: 0;
+  color: #fff4d6;
+  font-size: 24px;
+}
+
+.signup-brand span {
+  display: block;
+  margin-top: 3px;
+  color: #9d8068;
+  font-size: 10px;
+  letter-spacing: 2px;
+}
+
+.signup-heading > span {
+  color: #fc6c26;
+  font-size: 11px;
+  letter-spacing: 2px;
+}
+
+.signup-heading h2 {
+  margin: 10px 0 8px;
+  color: #fff4d6;
+  font-size: 32px;
+}
+
+.signup-heading p {
+  margin: 0 0 28px;
+  color: #b09a84;
+  line-height: 1.6;
+}
+
+.signup-card form {
+  display: flex;
+  flex-direction: column;
+  gap: 17px;
+}
+
+.signup-card label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: #d2bca5;
+  font-size: 13px;
+}
+
+.signup-card input,
+.signup-card select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 13px 14px;
+  background: #0b0806;
+  border: 1px solid #422819;
+  border-radius: 8px;
+  color: #fff4d6;
+  outline: none;
+  font-size: 14px;
+}
+
+.signup-card input::placeholder {
+  color: #765e4b;
+}
+
+.signup-card input:focus,
+.signup-card select:focus {
+  border-color: #fc6c26;
+  box-shadow: 0 0 0 2px rgba(252, 108, 38, 0.12);
+}
+
+.signup-card select[multiple] {
+  min-height: 110px;
+}
+
+.signup-card button {
+  margin-top: 7px;
+  height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  border: 0;
+  border-radius: 8px;
+  background: #fc6c26;
+  color: #fff4d6;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.signup-card button:hover {
+  background: #ff7b39;
+}
+
+.signup-card button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.signup-footer {
+  margin-top: 24px;
+  text-align: center;
+  color: #8e7763;
+  font-size: 13px;
+}
+
+.signup-footer a {
+  margin-left: 6px;
+  color: #fc6c26;
+  text-decoration: none;
+}
+
+.signup-footer a:hover {
+  text-decoration: underline;
+}
+

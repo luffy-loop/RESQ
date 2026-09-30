@@ -1,0 +1,11 @@
+const express = require("express");
+const { createRequest, getRequestById, getPublicRequests, getRequests, updateRequest, autoAssignVolunteer, assignToVolunteer } = require("../controllers/requestController");
+const router = express.Router();
+router.post("/", createRequest);
+router.get("/public", getPublicRequests);
+router.get("/", getRequests);
+router.get("/:id", getRequestById);
+router.patch("/:id", updateRequest);
+router.post("/:id/auto-assign", autoAssignVolunteer);
+router.post("/:id/assign", assignToVolunteer);
+module.exports = router;

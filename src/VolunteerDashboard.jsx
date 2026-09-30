@@ -135,7 +135,11 @@ function VolunteerDashboard() {
             {openRequests.length === 0 ? <Empty icon={<CheckCircle2/>} title="Queue is clear" text="No unassigned emergencies are waiting right now."/> : <div className="vol-list">{openRequests.slice(0, 8).map(item => <OpenRequest key={item._id} item={item} claiming={claiming === item._id} onClaim={claim}/>)}</div>}
           </section>
         </div>
-      </main>
+          <section className="vol-completed">
+            <div className="vol-completed-head"><div><span>RESPONSE HISTORY</span><h2>Resolved emergencies</h2></div><b>{completed.length}</b></div>
+            {completed.length === 0 ? <div className="vol-empty"><span><CheckCircle2/></span><strong>No resolved cases yet</strong><p>Completed responses will stay here for the current session.</p></div> : <div className="vol-completed-list">{completed.map(item => <article className="vol-completed-item" key={item._id}><strong>{item.title}</strong><p>{item.requestType} · {item.peopleCount || 1} people</p><small>RESOLVED</small></article>)}</div>}
+          </section>
+        </main>
     </div>
   );
 }

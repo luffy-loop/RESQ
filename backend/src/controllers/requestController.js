@@ -1,6 +1,8 @@
 const crypto = require("crypto");
 const EmergencyRequest = require("../models/EmergencyRequest");
 const User = require("../models/User");
+const { analyzeEmergency } = require("../services/responseIntelligence");
+const { embedText, emergencyText } = require("../services/embeddingService");
 
 const populateRequest = query => query.populate("requester", "name phone").populate("assignedVolunteer", "name phone skills location");
 
@@ -19,7 +21,11 @@ const createRequest = async (req, res) => {
     const { requester, reporterToken: clientToken, reporterName, reporterPhone, disasterType, requestType, title, description, peopleCount, priority, location } = req.body;
     if (!requestType || !title?.trim() || !validateLocation(location?.coordinates)) return res.status(400).json({ success: false, message: "Emergency details and valid GPS location are required" });
     const reporterToken = clientToken || crypto.randomBytes(18).toString("hex");
-    const request = await EmergencyRequest.create({ requester: requester || undefined, reporterToken, reporterName: reporterName?.trim() || undefined, reporterPhone: reporterPhone?.trim() || undefined, disasterType: disasterType || "OTHER", requestType, title: title.trim(), description: description?.trim() || "", peopleCount: Math.max(1, Number(peopleCount) || 1), priority: priority || "MEDIUM", location: { type: "Point", coordinates: location.coordinates.map(Number) } });
+    const draft = { disasterType: disasterType || "OTHER", requestType, title: title.trim(), description: description?.trim() || "", peopleCount: Math.max(1, Number(peopleCount) || 1), priority: priority || "MEDIUM" };
+    const intelligence = analyzeEmergency(draft);
+    let embedding = null;
+    try { embedding = await embedText(emergencyText({ ...draft, intelligence })); } catch (embeddingError) { console.warn("Embedding skipped:", embeddingError.message); }
+    const request = await EmergencyRequest.create({ requester: requester || undefined, reporterToken, reporterName: reporterName?.trim() || undefined, reporterPhone: reporterPhone?.trim() || undefined, ...draft, priority: intelligence.recommendedPriority, embedding: embedding || undefined, intelligence: { ...intelligence, analyzedAt: new Date() }, location: { type: "Point", coordinates: location.coordinates.map(Number) } });
     const populated = await populateRequest(EmergencyRequest.findById(request._id));
     req.app.get("io")?.to("command-center").emit("emergency-created", populated);
     res.status(201).json({ success: true, message: "Emergency request created", reporterToken, request: populated });
@@ -44,6 +50,7 @@ const updateRequest = async (req,res)=>{
 const assignToVolunteer = async (req,res)=>{
   try {
     const { volunteerId }=req.body;
+    if (req.user?.role === "VOLUNTEER" && String(req.user._id) !== String(volunteerId)) return res.status(403).json({ success:false, message:"Volunteers can only accept requests for themselves" });
     const request=await EmergencyRequest.findById(req.params.id); if(!request)return res.status(404).json({message:"Emergency request not found"});
     if(request.status!=="PENDING")return res.status(400).json({message:"This emergency is no longer available"});
     const volunteer=await User.findOne({_id:volunteerId,role:"VOLUNTEER",available:true}).select("-password"); if(!volunteer)return res.status(409).json({message:"Volunteer is unavailable"});
@@ -58,8 +65,9 @@ const autoAssignVolunteer = async (req,res)=>{
     const request=await EmergencyRequest.findById(req.params.id); if(!request)return res.status(404).json({success:false,message:"Emergency request not found"});
     if(request.status!=="PENDING")return res.status(400).json({success:false,message:"Request is already assigned or completed"});
     const base={role:"VOLUNTEER",available:true};
-    let volunteer=await User.findOne({...base,skills:request.requestType,location:{$near:{$geometry:request.location,$maxDistance:20000}}}).select("-password");
-    if(!volunteer) volunteer=await User.findOne({...base,location:{$near:{$geometry:request.location,$maxDistance:20000}}}).select("-password");
+    const preferredSkills = request.intelligence?.recommendedSkills?.length ? request.intelligence.recommendedSkills : [request.requestType];
+    let volunteer = await User.findOne({ ...base, skills: { $in: preferredSkills }, location: { $near: { $geometry: request.location, $maxDistance: 20000 } } }).select("-password");
+    if(!volunteer) volunteer = await User.findOne({ ...base, location: { $near: { $geometry: request.location, $maxDistance: 20000 } } }).select("-password");
     if(!volunteer)return res.status(404).json({success:false,message:"No available volunteer found within 20 km"});
     request.assignedVolunteer=volunteer._id; request.status="ASSIGNED"; await request.save(); volunteer.available=false; await volunteer.save();
     const updated=await populateRequest(EmergencyRequest.findById(request._id)); const io=req.app.get("io"); emitRequestUpdate(io,updated); io?.to(`volunteer:${volunteer._id}`).emit("volunteer-assigned",{request:updated,volunteer:{_id:volunteer._id,name:volunteer.name,skills:volunteer.skills}});

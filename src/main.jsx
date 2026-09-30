@@ -3,6 +3,7 @@ import axios from "axios";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import App from "./App.jsx";
+import LandingPage from "./pages/LandingPage.jsx";
 import Login from "./pages/Login.jsx";
 import Signup from "./pages/Signup.jsx";
 import VolunteerDashboard from "./VolunteerDashboard.jsx";
@@ -22,7 +23,7 @@ createRoot(document.getElementById("root")).render(
   <StrictMode>
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<CitizenDashboard />} />
+        <Route path="/" element={<LandingPage />} />
         <Route path="/citizen" element={<CitizenDashboard />} />
         <Route path="/track" element={<TrackReport />} />
         <Route path="/login" element={<Login />} />

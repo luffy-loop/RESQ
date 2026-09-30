@@ -172,3 +172,5 @@
 .citizen-responder-map-link:hover,.citizen-map-link:hover { text-decoration:underline; }
 .citizen-resolved { display:flex; align-items:center; gap:7px; margin-top:12px; color:#43c979; font-size:10px; }
 .citizen-request-location { display:flex; align-items:center; gap:6px; margin-top:12px; color:#796552; font:9px "DM Mono",monospace; }
+
+.citizen-status.accepted{background:rgba(112,167,248,.09);color:#70a7f8}.citizen-status.on_the_way{background:rgba(252,108,38,.1);color:#fc8a54}.citizen-status.arrived{background:rgba(67,201,121,.08);color:#67d999}

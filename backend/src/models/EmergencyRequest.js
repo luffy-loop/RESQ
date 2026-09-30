@@ -12,7 +12,7 @@ const emergencyRequestSchema = new mongoose.Schema(
     description: String,
     peopleCount: { type: Number, default: 1, min: 1 },
     priority: { type: String, enum: ["CRITICAL", "HIGH", "MEDIUM", "LOW"], default: "MEDIUM" },
-    status: { type: String, enum: ["PENDING", "ASSIGNED", "IN_PROGRESS", "RESOLVED", "CANCELLED"], default: "PENDING" },
+    status: { type: String, enum: ["PENDING", "ASSIGNED", "ACCEPTED", "ON_THE_WAY", "ARRIVED", "IN_PROGRESS", "RESOLVED", "CANCELLED"], default: "PENDING" },
     location: { type: { type: String, enum: ["Point"], default: "Point" }, coordinates: { type: [Number], required: true } },
     assignedVolunteer: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     demoSeed: { type: Boolean, default: false },

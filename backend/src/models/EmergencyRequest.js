@@ -14,7 +14,17 @@ const emergencyRequestSchema = new mongoose.Schema(
     priority: { type: String, enum: ["CRITICAL", "HIGH", "MEDIUM", "LOW"], default: "MEDIUM" },
     status: { type: String, enum: ["PENDING", "ASSIGNED", "IN_PROGRESS", "RESOLVED", "CANCELLED"], default: "PENDING" },
     location: { type: { type: String, enum: ["Point"], default: "Point" }, coordinates: { type: [Number], required: true } },
-    assignedVolunteer: { type: mongoose.Schema.Types.ObjectId, ref: "User" }
+    assignedVolunteer: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    demoSeed: { type: Boolean, default: false },
+    embedding: { type: [Number], select: false },
+    intelligence: {
+      score: { type: Number, min: 0, max: 100 },
+      recommendedPriority: { type: String, enum: ["CRITICAL", "HIGH", "MEDIUM", "LOW"] },
+      requiredResources: [String],
+      recommendedSkills: [String],
+      reasoning: String,
+      analyzedAt: Date
+    }
   },
   { timestamps: true }
 );

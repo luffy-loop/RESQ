@@ -7,6 +7,7 @@ const Supply = require("../models/Supply");
 const Disaster = require("../models/Disaster");
 const EmergencyRequest = require("../models/EmergencyRequest");
 const { analyzeEmergency } = require("../services/responseIntelligence");
+const { embedText, emergencyText } = require("../services/embeddingService");
 
 const run = async () => {
   await connectDB();
@@ -48,7 +49,9 @@ const run = async () => {
   ];
   for (const report of reports) {
     const intelligence = analyzeEmergency({ ...report, disasterType: "FLOOD", priority: "MEDIUM" });
-    await EmergencyRequest.create({ ...report, disasterType: "FLOOD", priority: intelligence.recommendedPriority, location: { type: "Point", coordinates: report.location }, reporterName: "Demo Citizen", reporterPhone: "9000000099", reporterToken: `demo-${Date.now()}-${Math.random().toString(16).slice(2)}`, intelligence: { ...intelligence, analyzedAt: new Date() }, demoSeed: true });
+    let embedding = null;
+    try { embedding = await embedText(emergencyText({ ...report, disasterType: "FLOOD", intelligence })); } catch (embeddingError) { console.warn("Demo embedding skipped:", embeddingError.message); }
+    await EmergencyRequest.create({ ...report, disasterType: "FLOOD", priority: intelligence.recommendedPriority, location: { type: "Point", coordinates: report.location }, reporterName: "Demo Citizen", reporterPhone: "9000000099", reporterToken: `demo-${Date.now()}-${Math.random().toString(16).slice(2)}`, intelligence: { ...intelligence, analyzedAt: new Date() }, embedding: embedding || undefined, demoSeed: true });
   }
   console.log("RESQ demo data seeded.");
   console.log("Authority: authority@resq.demo / resq-demo-123");

@@ -80,3 +80,10 @@ VITE_SOCKET_URL=http://localhost:5001
 7. Move the volunteer response through Assigned → In Progress → Resolved.
 8. Log in as an NGO and register/commit supplies.
 9. Show shelter capacity and resource inventory on the command center.
+
+
+## Demo setup
+
+From `backend/`, run `npm run seed` to create a realistic Hyderabad response dataset and demo accounts.
+
+The emergency workflow includes an explainable Response Intelligence layer that scores urgency, recommends priority/resources, and feeds responder matching. See `docs/ResponseIntelligence.md`.

@@ -1,4 +1,5 @@
 import { StrictMode } from "react";
+import axios from "axios";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import App from "./App.jsx";
@@ -10,6 +11,12 @@ import NgoDashboard from "./pages/NgoDashboard.jsx";
 import TrackReport from "./pages/TrackReport.jsx";
 import ProtectedRoute from "./components/shared/ProtectedRoute.jsx";
 import "./index.css";
+
+axios.interceptors.request.use(config => {
+  const token = localStorage.getItem("token");
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>

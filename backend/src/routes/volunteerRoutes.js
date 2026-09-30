@@ -1,19 +1,10 @@
 const express = require("express");
-
-const {
-  createVolunteer,
-  getVolunteers,
-  updateVolunteerAvailability,
-  updateVolunteerLocation,
-  findNearbyVolunteers
-} = require("../controllers/volunteerController");
-
+const { createVolunteer, getVolunteers, updateVolunteerAvailability, updateVolunteerLocation, findNearbyVolunteers } = require("../controllers/volunteerController");
+const { requireAuth, allowRoles } = require("../middleware/auth");
 const router = express.Router();
-
-router.post("/", createVolunteer);
-router.get("/", getVolunteers);
-router.patch("/:id/availability", updateVolunteerAvailability);
-router.patch("/:id/location", updateVolunteerLocation);
-router.get("/nearby", findNearbyVolunteers);
-
+router.post("/", requireAuth, allowRoles("AUTHORITY"), createVolunteer);
+router.get("/", requireAuth, allowRoles("AUTHORITY", "VOLUNTEER", "NGO"), getVolunteers);
+router.patch("/:id/availability", requireAuth, allowRoles("VOLUNTEER", "AUTHORITY"), updateVolunteerAvailability);
+router.patch("/:id/location", requireAuth, allowRoles("VOLUNTEER", "AUTHORITY"), updateVolunteerLocation);
+router.get("/nearby", requireAuth, allowRoles("AUTHORITY", "VOLUNTEER", "NGO"), findNearbyVolunteers);
 module.exports = router;

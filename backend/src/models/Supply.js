@@ -45,6 +45,7 @@ const supplySchema = new mongoose.Schema(
       trim: true
     },
     contact: String,
+    demoSeed: { type: Boolean, default: false },
     location: {
       type: {
         type: String,

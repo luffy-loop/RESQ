@@ -1,9 +1,11 @@
 const EmergencyRequest = require("../models/EmergencyRequest");
+const { embedText } = require("../services/embeddingService");
 
 const searchSimilarEmergencies = async (req, res) => {
   try {
-    const queryVector = Array.isArray(req.body.vector) ? req.body.vector.map(Number) : null;
-    if (!queryVector?.length) return res.status(400).json({ success: false, message: "An embedding vector is required" });
+    let queryVector = Array.isArray(req.body.vector) ? req.body.vector.map(Number) : null;
+    if (!queryVector?.length && req.body.text?.trim()) queryVector = await embedText(req.body.text.trim());
+    if (!queryVector?.length) return res.status(400).json({ success: false, message: "Provide search text or an embedding vector" });
     const index = process.env.MONGO_VECTOR_INDEX || "emergency_vector_index";
     const results = await EmergencyRequest.aggregate([
       { $vectorSearch: { index, path: "embedding", queryVector, numCandidates: 100, limit: Math.min(Number(req.body.limit) || 5, 20) } },

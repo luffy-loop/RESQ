@@ -5,7 +5,8 @@ const app = require("./app");
 const connectDB = require("./config/db");
 const EmergencyRequest = require("./models/EmergencyRequest");
 const server = http.createServer(app);
-const io = new Server(server, { cors: { origin: "*" }, transports: ["polling", "websocket"] });
+const allowedOrigins = (process.env.FRONTEND_URLS || "*").split(",").map(value => value.trim()).filter(Boolean);
+const io = new Server(server, { cors: { origin: allowedOrigins.length === 1 ? allowedOrigins[0] : allowedOrigins }, transports: ["polling", "websocket"] });
 
 io.on("connection", socket => {
   socket.on("join-command-center", () => socket.join("command-center"));

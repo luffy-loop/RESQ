@@ -7,6 +7,8 @@ const volunteerRoutes = require("./routes/volunteerRoutes");
 const shelterRoutes = require("./routes/shelterRoutes");
 const supplyRoutes = require("./routes/supplyRoutes");
 const disasterRoutes = require("./routes/disasterRoutes");
+const intelligenceRoutes = require("./routes/intelligenceRoutes");
+const vectorSearchRoutes = require("./routes/vectorSearchRoutes");
 
 const app = express();
 
@@ -26,5 +28,7 @@ app.get("/", (req, res) => {
 
 app.use("/api/auth", authRoutes);
 app.use("/api/requests", requestRoutes);
+app.use("/api/intelligence", intelligenceRoutes);
+app.use("/api/search", vectorSearchRoutes);
 
 module.exports = app;

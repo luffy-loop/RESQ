@@ -14,6 +14,8 @@ Citizens can report without creating an account. Responders use authenticated ac
 - Disaster/incident activation for Flood, Earthquake, Cyclone, Fire, Landslide and Other
 - Authority command center with live map
 - Priority emergency queue and automatic volunteer assignment
+- Smart responder matching with skill fit, distance, match score and estimated ETA
+- One-click live Google Maps navigation route for the assigned responder
 - Volunteer dashboard with accept/start/resolve workflow
 - Volunteer availability and live GPS sharing
 - Anonymous citizen live status and responder location

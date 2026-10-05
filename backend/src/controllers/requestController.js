@@ -1,6 +1,7 @@
 const crypto = require("crypto");
 const EmergencyRequest = require("../models/EmergencyRequest");
 const User = require("../models/User");
+const { findBestResponder } = require("../services/responderMatching");
 const { analyzeEmergency } = require("../services/responseIntelligence");
 const { embedText, emergencyText } = require("../services/embeddingService");
 
@@ -16,26 +17,35 @@ const emitRequestUpdate = (io, request, event = "emergency-updated") => {
 
 const validateLocation = coordinates => Array.isArray(coordinates) && coordinates.length === 2 && coordinates.every(value => Number.isFinite(Number(value))) && Number(coordinates[0]) >= -180 && Number(coordinates[0]) <= 180 && Number(coordinates[1]) >= -90 && Number(coordinates[1]) <= 90;
 
-const findNearestVolunteer = async request => {
-  const skills = request.intelligence?.recommendedSkills?.length ? request.intelligence.recommendedSkills : [request.requestType];
-  const base = { role: "VOLUNTEER", available: true };
-  let volunteer = await User.findOne({ ...base, skills: { $in: skills }, location: { $near: { $geometry: request.location, $maxDistance: 20000 } } }).select("-password");
-  if (!volunteer) volunteer = await User.findOne({ ...base, location: { $near: { $geometry: request.location, $maxDistance: 20000 } } }).select("-password");
-  return volunteer;
-};
-
 const autoAssignExistingRequest = async (request, io) => {
   if (!request || request.status !== "PENDING") return null;
-  const volunteer = await findNearestVolunteer(request);
-  if (!volunteer) return null;
-  request.assignedVolunteer = volunteer._id;
-  request.status = "ASSIGNED";
-  await request.save();
-  volunteer.available = false;
-  await volunteer.save();
+  const match = await findBestResponder(request);
+  if (!match) return null;
+
+  const claimed = await EmergencyRequest.findOneAndUpdate(
+    { _id: request._id, status: "PENDING" },
+    { $set: { assignedVolunteer: match.volunteer._id, status: "ASSIGNED", assignment: match.assignment } },
+    { new: true, runValidators: true }
+  );
+  if (!claimed) return null;
+
+  const volunteer = await User.findOneAndUpdate(
+    { _id: match.volunteer._id, role: "VOLUNTEER", available: true },
+    { $set: { available: false } },
+    { new: true }
+  ).select("-password");
+
+  if (!volunteer) {
+    await EmergencyRequest.findByIdAndUpdate(request._id, { $set: { status: "PENDING" }, $unset: { assignedVolunteer: 1, assignment: 1 } });
+    return null;
+  }
+
   const updated = await populateRequest(EmergencyRequest.findById(request._id));
   emitRequestUpdate(io, updated, "emergency-assigned");
-  io?.to(`volunteer:${volunteer._id}`).emit("volunteer-assigned", { request: updated, volunteer: { _id: volunteer._id, name: volunteer.name, skills: volunteer.skills } });
+  io?.to(`volunteer:${volunteer._id}`).emit("volunteer-assigned", {
+    request: updated,
+    volunteer: { _id: volunteer._id, name: volunteer.name, skills: volunteer.skills }
+  });
   return updated;
 };
 
@@ -103,8 +113,8 @@ const autoAssignVolunteer = async (req,res) => {
   try {
     const request=await EmergencyRequest.findById(req.params.id); if(!request)return res.status(404).json({success:false,message:"Emergency request not found"});
     if(request.status!=="PENDING")return res.status(400).json({success:false,message:"Request is already assigned or completed"});
-    const updated=await autoAssignExistingRequest(request,req.app.get("io")); if(!updated)return res.status(404).json({success:false,message:"No available volunteer found within 20 km"});
-    res.json({success:true,message:"Nearest suitable volunteer automatically assigned",volunteer:updated.assignedVolunteer,request:updated});
+    const updated=await autoAssignExistingRequest(request,req.app.get("io")); if(!updated)return res.status(404).json({success:false,message:"No available volunteer found within 30 km"});
+    res.json({success:true,message:"Best available responder automatically assigned",volunteer:updated.assignedVolunteer,request:updated});
   } catch(err){res.status(500).json({success:false,message:err.message});}
 };
 

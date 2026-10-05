@@ -1,7 +1,7 @@
 const crypto = require("crypto");
 const EmergencyRequest = require("../models/EmergencyRequest");
 const User = require("../models/User");
-const { findBestResponder } = require("../services/responderMatching");
+const { findBestResponder, buildResponderAssignment } = require("../services/responderMatching");
 const { analyzeEmergency } = require("../services/responseIntelligence");
 const { embedText, emergencyText } = require("../services/embeddingService");
 
@@ -24,7 +24,7 @@ const autoAssignExistingRequest = async (request, io) => {
 
   const claimed = await EmergencyRequest.findOneAndUpdate(
     { _id: request._id, status: "PENDING" },
-    { $set: { assignedVolunteer: match.volunteer._id, status: "ASSIGNED", assignment: match.assignment } },
+    { $set: { assignedVolunteer: match.volunteer._id, status: "ASSIGNED", assignment: match.assignment, assignedAt: new Date(), lastStatusAt: new Date() } },
     { new: true, runValidators: true }
   );
   if (!claimed) return null;
@@ -36,7 +36,7 @@ const autoAssignExistingRequest = async (request, io) => {
   ).select("-password");
 
   if (!volunteer) {
-    await EmergencyRequest.findByIdAndUpdate(request._id, { $set: { status: "PENDING" }, $unset: { assignedVolunteer: 1, assignment: 1 } });
+    await EmergencyRequest.findByIdAndUpdate(request._id, { $set: { status: "PENDING", lastStatusAt: new Date() }, $unset: { assignedVolunteer: 1, assignment: 1, assignedAt: 1 } });
     return null;
   }
 
@@ -103,7 +103,9 @@ const assignToVolunteer = async (req,res) => {
     const request=await EmergencyRequest.findById(req.params.id); if(!request)return res.status(404).json({message:"Emergency request not found"});
     if(request.status!=="PENDING")return res.status(400).json({message:"This emergency is no longer available"});
     const volunteer=await User.findOne({_id:volunteerId,role:"VOLUNTEER",available:true}).select("-password"); if(!volunteer)return res.status(409).json({message:"Volunteer is unavailable"});
-    request.assignedVolunteer=volunteer._id; request.status="ASSIGNED"; await request.save(); volunteer.available=false; await volunteer.save();
+    const assignment = buildResponderAssignment(request, volunteer, "Assigned");
+    const now = new Date();
+    request.assignedVolunteer=volunteer._id; request.status="ASSIGNED"; request.assignment=assignment; request.assignedAt=now; request.lastStatusAt=now; await request.save(); volunteer.available=false; await volunteer.save();
     const updated=await populateRequest(EmergencyRequest.findById(request._id)); const io=req.app.get("io"); emitRequestUpdate(io,updated,"emergency-assigned"); io?.to(`volunteer:${volunteer._id}`).emit("volunteer-assigned",{request:updated,volunteer:{_id:volunteer._id,name:volunteer.name,skills:volunteer.skills}});
     res.json({success:true,request:updated,volunteer});
   } catch(err){res.status(500).json({success:false,message:err.message});}

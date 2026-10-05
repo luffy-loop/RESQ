@@ -4,6 +4,7 @@ const { Server } = require("socket.io");
 const app = require("./app");
 const connectDB = require("./config/db");
 const EmergencyRequest = require("./models/EmergencyRequest");
+const { processEscalations } = require("./services/escalationService");
 
 const server = http.createServer(app);
 
@@ -79,6 +80,11 @@ app.set("io", io);
   await connectDB();
 
   const port = Number(process.env.PORT) || 5001;
+  const escalationInterval = Number(process.env.RESQ_ESCALATION_INTERVAL_MS) || 30000;
+  const runEscalations = () => processEscalations(io).catch(err => console.error("Escalation cycle failed:", err.message));
+  await runEscalations();
+  const escalationTimer = setInterval(runEscalations, escalationInterval);
+  escalationTimer.unref?.();
 
   server.listen(port, "0.0.0.0", () => {
     console.log(`RESQ server running on ${port}`);

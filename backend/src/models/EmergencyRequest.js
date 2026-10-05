@@ -1,5 +1,7 @@
 const mongoose = require("mongoose");
 
+const escalationHistorySchema = new mongoose.Schema({ volunteer: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true }, escalatedAt: { type: Date, required: true }, reason: { type: String, required: true } }, { _id: false });
+
 const emergencyRequestSchema = new mongoose.Schema(
   {
     requester: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
@@ -25,6 +27,14 @@ const emergencyRequestSchema = new mongoose.Schema(
       estimatedAt: Date,
       routeUrl: String
     },
+    assignedAt: Date,
+    acceptedAt: Date,
+    lastStatusAt: { type: Date, default: Date.now },
+    resolvedAt: Date,
+    escalationCount: { type: Number, default: 0, min: 0 },
+    lastEscalatedAt: Date,
+    escalationReason: String,
+    escalationHistory: { type: [escalationHistorySchema], default: [] },
     demoSeed: { type: Boolean, default: false },
     embedding: { type: [Number], select: false },
     intelligence: {
@@ -41,6 +51,7 @@ const emergencyRequestSchema = new mongoose.Schema(
 
 emergencyRequestSchema.index({ location: "2dsphere" });
 emergencyRequestSchema.index({ status: 1, priority: 1, createdAt: -1 });
+emergencyRequestSchema.index({ status: 1, assignedAt: 1 });
 emergencyRequestSchema.index({ disasterType: 1, createdAt: -1 });
 
 module.exports = mongoose.model("EmergencyRequest", emergencyRequestSchema);

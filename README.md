@@ -16,6 +16,9 @@ Citizens can report without creating an account. Responders use authenticated ac
 - Priority emergency queue and automatic volunteer assignment
 - Smart responder matching with skill fit, distance, match score and estimated ETA
 - One-click live Google Maps navigation route for the assigned responder
+- Automatic escalation when an assigned responder does not accept within the priority response window
+- Escalation history, reassignment to a different available responder, and live escalation alerts
+- Response timers for Critical, High, Medium and Low assignments
 - Volunteer dashboard with accept/start/resolve workflow
 - Volunteer availability and live GPS sharing
 - Anonymous citizen live status and responder location
@@ -56,12 +59,17 @@ npm install
 npm start
 ```
 
+## Escalation policy
+
+Assigned requests have an acceptance window based on priority: Critical 2 minutes, High 5 minutes, Medium 10 minutes and Low 15 minutes. If the assigned responder does not accept before the window expires, RESQ releases that responder, records the escalation, and searches for a different available responder. Previously escalated responders are excluded from the next match. If no alternative responder is available, the request returns to the pending queue.
+
 Backend `.env`:
 
 ```env
 MONGO_URI=your_mongodb_atlas_uri
 PORT=5001
 JWT_SECRET=your_long_secret
+RESQ_ESCALATION_INTERVAL_MS=30000
 ```
 
 Frontend `.env`:

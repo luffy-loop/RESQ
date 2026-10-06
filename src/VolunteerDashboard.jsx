@@ -46,7 +46,8 @@ function VolunteerDashboard() {
   const [claiming, setClaiming] = useState(null);
   const [notice, setNotice] = useState(null);
   const [online, setOnline] = useState(false);
-  const [sharing, setSharing] = useState(false);\n  const navigate = useNavigate();
+  const [sharing, setSharing] = useState(false);
+  const navigate = useNavigate();
 
   const watchRef = useRef(null);
   const socketRef = useRef(null);

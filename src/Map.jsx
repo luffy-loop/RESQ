@@ -18,7 +18,7 @@ const escapeHtml = value => String(value ?? "")
   .replaceAll('"', "&quot;")
   .replaceAll("'", "&#039;");
 
-function Map({ requests = [], volunteers = [], shelters = [], supplies = [], liveLocations = {} }) {
+function Map({ requests = [], volunteers = [], shelters = [], supplies = [], liveLocations = {}, heatmap = [] }) {
   const mapContainer = useRef(null);
   const map = useRef(null);
   const markers = useRef(new Map());
@@ -35,6 +35,9 @@ function Map({ requests = [], volunteers = [], shelters = [], supplies = [], liv
     m.addControl(new NavigationControl(), "top-right");
     return () => {
       markers.current.forEach(marker => marker.remove());
+      if (m.getLayer("resq-heatmap")) m.removeLayer("resq-heatmap");
+      if (m.getSource("resq-heatmap")) m.removeSource("resq-heatmap");
+      if (heatmap.length) { m.addSource("resq-heatmap",{type:"geojson",data:{type:"FeatureCollection",features:heatmap.map(point=>({type:"Feature",geometry:{type:"Point",coordinates:[point.longitude,point.latitude]},properties:{density:point.density}}))}}); m.addLayer({id:"resq-heatmap",type:"heatmap",source:"resq-heatmap",paint:{"heatmap-weight":["get","density"],"heatmap-radius":28,"heatmap-opacity":0.55,"heatmap-intensity":1.2}}); }
       markers.current.clear();
       m.remove();
       map.current = null;
@@ -132,7 +135,7 @@ function Map({ requests = [], volunteers = [], shelters = [], supplies = [], liv
 
     if (m.isStyleLoaded()) render();
     else m.once("load", render);
-  }, [requests, volunteers, shelters, supplies, liveLocations]);
+  }, [requests, volunteers, shelters, supplies, liveLocations, heatmap]);
 
   return <div className="real-map-wrap">
     <div ref={mapContainer} className="real-map" />

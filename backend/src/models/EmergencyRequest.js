@@ -1,6 +1,19 @@
 const mongoose = require("mongoose");
 
 const escalationHistorySchema = new mongoose.Schema({ volunteer: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true }, escalatedAt: { type: Date, required: true }, reason: { type: String, required: true } }, { _id: false });
+const dispatchMemberSchema = new mongoose.Schema({
+  volunteer: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+  role: { type: String, default: "RESPONDER" },
+  status: { type: String, enum: ["ASSIGNED", "ACCEPTED", "ON_THE_WAY", "ARRIVED", "IN_PROGRESS", "RESOLVED"], default: "ASSIGNED" },
+  matchScore: Number,
+  distanceKm: Number,
+  etaMinutes: Number,
+  matchedSkills: [String],
+  reasoning: String,
+  assignedAt: Date,
+  acceptedAt: Date,
+  resolvedAt: Date
+}, { _id: false });
 
 const emergencyRequestSchema = new mongoose.Schema(
   {
@@ -17,6 +30,12 @@ const emergencyRequestSchema = new mongoose.Schema(
     status: { type: String, enum: ["PENDING", "ASSIGNED", "ACCEPTED", "ON_THE_WAY", "ARRIVED", "IN_PROGRESS", "RESOLVED", "CANCELLED"], default: "PENDING" },
     location: { type: { type: String, enum: ["Point"], default: "Point" }, coordinates: { type: [Number], required: true } },
     assignedVolunteer: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    dispatchTeam: { type: [dispatchMemberSchema], default: [] },
+    duplicateOf: { type: mongoose.Schema.Types.ObjectId, ref: "EmergencyRequest" },
+    duplicateScore: { type: Number, min: 0, max: 1 },
+    duplicateReason: String,
+    relatedReports: [{ type: mongoose.Schema.Types.ObjectId, ref: "EmergencyRequest" }],
+    incidentCluster: { type: String, index: true },
     assignment: {
       matchScore: { type: Number, min: 0, max: 100 },
       distanceKm: { type: Number, min: 0 },

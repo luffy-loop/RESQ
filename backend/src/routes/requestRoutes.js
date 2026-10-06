@@ -1,9 +1,10 @@
 const express = require("express");
-const { createRequest, getRequestById, getPublicRequests, getRequests, updateRequest, autoAssignVolunteer, assignToVolunteer } = require("../controllers/requestController");
+const { createRequest, getRequestById, getPublicRequests, getRequests, getEmergencyHeatmap, updateRequest, autoAssignVolunteer, assignToVolunteer } = require("../controllers/requestController");
 const { requireAuth, allowRoles } = require("../middleware/auth");
 const router = express.Router();
 router.post("/", createRequest);
 router.get("/public", getPublicRequests);
+router.get("/heatmap", requireAuth, allowRoles("AUTHORITY", "VOLUNTEER", "NGO"), getEmergencyHeatmap);
 router.get("/", requireAuth, allowRoles("AUTHORITY", "VOLUNTEER", "NGO"), getRequests);
 router.get("/:id", requireAuth, allowRoles("AUTHORITY", "VOLUNTEER", "NGO"), getRequestById);
 router.patch("/:id", requireAuth, allowRoles("AUTHORITY", "VOLUNTEER", "NGO"), updateRequest);
